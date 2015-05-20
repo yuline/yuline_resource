@@ -1,0 +1,41 @@
+linux 系统发邮件：
+一 直接使用sendmail服务发送邮件
+1 安装并启动sendmail
+yum install sendmail 
+service sendmail start
+2 直接使用sendmail 命令发送邮件
+2.1 输入命令： 
+[yulin6@YF_3_95_test ~]$ sendmail yulin6@staff.sina.com.cn
+Subject: Test MAIL
+From: yulin6@YF_3_95_test.blog.sina.com.cn
+To: yulin6@staff.sina.com.cn
+      
+hello.world
+.
+
+则发送邮件成功，同样可以使用下列命令：
+echo -e "Subject: Test MAIL2\nTo: yulin6@staff.sina.com.cn \n\nhello.world2\n.\n" | sendmail yulin6@staff.sina.com.cn
+
+注意：
+一般邮件接收方的服务器会对发送方的主机名(From: 字段)进行检查，若主机名与相应发送邮件服务器的ip解析不对应则发送失败，此时可以查看/var/mail/yourname,
+
+3 借助mail命令：
+yum install mailx
+
+3.1 mail 命令会自动补全收件人，而且可以添加抄送人，添加附件等功能：
+echo 'Test1110' | mail -s Test10 -c yulin6@staff.sina.com.cn  yl000111@126.com
+
+3.2 mail 命令默认使用本地sendmail发送邮件，这样要求本地的机器必须安装和启动Sendmail服务，而且消耗本地的服务器资源，可以通过配置/etc/mail.rc文件来使用外部的smtp服务器发送邮件。
+例：set from=yulin6@staff.sina.com.cn smtp=mail.staff.sina.com.cn smtp-auth-user=yulin6 smtp-auth-password=yl7924793% smtp-auth=login
+
+from是发送的邮件地址
+smtp是发生的外部smtp服务器的地址
+smtp-auth-user是外部smtp服务器认证的用户名
+smtp-auth-password是外部smtp服务器认证的用户密码
+smtp-auth是邮件认证的方式
+配置成功后，就可以使用了
+
+
+
+
+
