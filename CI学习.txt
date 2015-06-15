@@ -1,0 +1,506 @@
+common.php中的php_version 与 DIRECTORY_SEPARATOR 在哪定义的？
+
+
+
+在URI中必须有index.php吗？
+route数组的定义键--值，键应该在其前面附加什么组成完整的uri?答：应该附加/index.php/
+所以目前url中还必须要有index.php，并且route数组的键是以index.php为基础的
+
+（apache）如何删除index.php
+删除 index.php 文件
+
+默认情况下，index.php 文件将被包含在你的 URL 中：
+
+example.com/index.php/news/article/my_article
+你可以很容易的通过 .htaccess 文件来设置一些简单的规则删除它。下面是一个例子，使用“negative”方法将非指定内容进行重定向：
+
+;;;;
+RewriteEngine on
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d        //此处有大坑。加上这两句可保证一般css、js文件正常加载。(注意删掉这句注释哦)
+
+RewriteCond $1 !^(index\.php|images|robots\.txt)
+RewriteRule ^(.*)$ /index.php/$1 [L]
+;;;
+
+注意:如果你的项目不在根目录请把上面这一句改为：RewriteRule ^(.*)$ index.php/$1 [L]
+
+
+
+2014/10/27
+发现active recode有一个大问题，在插入数据时及时表的相应字段定义为not null，但是在使用$this->db->insert()等相关函数进行插入操作时，即使相应字段都没有给予，依然可以正常插入，默认没指定的字段值都为''。所以在下面的学习中一要注意CI中是否有关于这方面的进一步说明完善，二就是要在使用insert插入数据库之前就要保证知道这些东西，不要指望insert自己会返回错误！
+
+
+
+==================================================================
+
+关于表单辅助函数只需要关注form_open()就可以了，其他表单元素使用html即可。使用form_open()不是直接硬编码HTML的主要的优势是它为你生成了基于你配置文件中的URL的 action URL。这使得你的应用在更改URL时更具移植性。
+下面是一个例子：
+echo form_open('email/send');
+上面的例子会创建一个form提交至你的基础URL加上"email/send" URI片段，像这样：
+<form method="post" accept-charset="utf-8" action="http://example.com/index.php/email/send" />
+使用方法：在控制器中首先$this->load->helper('form');然后即可使用
+
+=================================================================
+
+CI的输入类(自动加载)：
+可以获取 get post server sourceip http_header等信息
+输入类有两个作用：1 预处理数据  2 安全 3 还有一个重要作用为设置cookie
+基本使用：
+$this->input->get()
+$this->input->post()
+$this->input->cookie()
+$this->input->server()
+使用输入类的好处在于可以不用检验数据是否存在，若不存在直接返回false;同时也可以在获取数据时选择是否xss过滤（第二个参数设为true）。
+
+设置cookie:
+$this->input->set_cookie()
+设置一个 Cookie 的值。这个函数接收两种形式的参数：数组形式和参数形式：
+数组形式(常用)
+用这种形式的话，第一个参数传递的是一个关联数组：（重要：自己推荐）
+$cookie = array(
+    'name'   => 'The Cookie Name',
+    'value'  => 'The Value',
+    'expire' => '86500',
+    'domain' => '.some-domain.com',
+    'path'   => '/',
+    'prefix' => 'myprefix_',
+    'secure' => TRUE
+);
+
+$this->input->set_cookie($cookie);
+说明：
+只有 name 和 value 是必须的。可以通过将 expire 设置成空来实现删除 Cookie 的操作。
+Cookie 的过期时间是以秒为单位来设置的，他是通过将 Cookie 的存续时间值加上当前系统时间来得到的。切记，expire 的值仅仅设置为Cookie 需要存续的时间长短，请不要将当前的系统时间加上存续时间后再赋给变量。如果将 expire 设置成零，那么 Cookie 仅在浏览器关闭的时候失效。
+如果需要设置全站范围内使用的cookie，无论你怎么请求都可以,那么你要把你的网站域名赋给$domain变量，并且需要以英文的句号"."开头，如: .your-domain.com
+path通常是不需要设置的，该方法设置path为网站的根目录。
+prefix(前缀)只有在为了避免和其它服务器上的相同命名的cookies冲突是才需要使用。
+secure(安全)设置选项只有在你想把他设置成安全的cookie时，才需要把secure设置为 TRUE(boolean).
+
+其他有用函数：
+$this->input->ip_address();返回接收请求的网络接口ip
+$this->input->valid_ip($ip);测试ip是否有效，可以通过第二个可选参数 "IPv4" 或 "IPv6" 来指定 IP 地址格式。默认两种格式都检查。
+$this->input->user_agent(); 返回当前用户正在使用的浏览器的user agent信息。 如果不能得到数据，返回FALSE。
+$this->input->request_headers(); 返回请求头（header）数组
+$this->input->get_request_header();返回请求头（request header）数组中某一个元素的值$this->input->get_request_header('some-header', TRUE);
+$this->input->is_ajax_request()检查服务器头HTTP_X_REQUESTED_WITH是否被设置，并返回布尔值。
+
+=======================================================
+
+表单验证：
+**********************************************************
+在解释 CodeIgniter 的数据验证处理之前，让我们先描述一下一般的情况：
+
+1 一个表单显示了。
+2 你填写并提交了它。
+3 如果你提交了一些无效的信息，或者可能漏掉了一个必填项，表单将会连同你的数据和错误问题的描述信息重新显示。
+4 这个过程将继续，直到你提交了一个有效的表单。
+
+在接收端，脚本必须：
+1 检查必须的数据。
+2 验证数据是否为正确的类型，合适的标准。例如，如果一个用户名被提交，它必须被验证是否只包含了允许的字符。它必须有一个最小长度，不能超过最大长度。用户名不能是已存在的他人用户名，或者甚至是一个保留字等。
+3 清理数据使其安全。 ？？具体
+4 如果需要，预格式化数据（数据需要清除空白吗？经过 HTML 编码？等。）
+5 准备数据，插入数据库。
+**************************************************************
+
+这里表单验证累form_validation的作用为接收端1 2 3 4
+注：我觉得也就是因为ci将表单验证类以及表单辅助函数写到了view里面，所以要把表单的创建与验证都写到一个方法里，这样避免了在创建时出错。
+1  基本用法：
+在控制器的方法中：
+$this->load->library('form_validation');
+$this->form_validation->set_rules(<field_name>,<field_name_人性化显示>,<rule>);
+$this->form_validation->run();
+
+2  设置多个规则或者预处理数据：
+$this->form_validation->set_rules('username', 'Username', 'trim|required|min_length[5]|max_length[12]|xss_clean');
+$this->form_validation->set_rules('password', 'Password', 'trim|required|matches[passconf]|md5');
+$this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
+
+在上面的例子里，我们“修整（trimming，去掉字符串两端空白）”了数据，转换密码为MD5，将用户名通过“xss_clean”函数处理去掉了有害数据。
+任何PHP自身接收一个参数的函数都可以被用作一个规则，比如 htmlspecialchars, trim, MD5, 等。
+注意: 你一般会在验证规则之后使用这些预处理功能，这样如果发生错误，原数据将会被显示在表单。
+
+3  如果我想在失败后重填表单时表单里已经有我上次的填写的内容了,只能重新填充设置了规则(rules)的表单域。
+set_value()
+set_select()
+set_checkbox()
+set_radio()
+
+<h5>Username</h5>
+<input type="text" name="username" value="<?php echo set_value('username'); ?>" size="50" />
+
+补充：
+第一个参数必须包含select菜单的名称, 第二个参数用于放置每一项的值（必填），第三项可选，用于设置一个默认项 (使用TRUE/FALSE设置)。
+<select name="myselect">
+<option value="one" <?php echo set_select('myselect', 'one', TRUE); ?> >One</option>
+<option value="two" <?php echo set_select('myselect', 'two'); ?> >Two</option>
+<option value="three" <?php echo set_select('myselect', 'three'); ?> >Three</option>
+</select>
+控制器：$this->form_validation->set_rules('myselect');   
+
+<input type="checkbox" name="mycheck[]" value="1" <?php echo set_checkbox('mycheck[]', '1'); ?> />
+<input type="checkbox" name="mycheck[]" value="2" <?php echo set_checkbox('mycheck[]', '2'); ?> />
+
+<input type="checkbox" name="mycheck[]" value="1" <?php echo set_checkbox('mycheck[]', '1'); ?> />
+<input type="checkbox" name="mycheck[]" value="2" <?php echo set_checkbox('mycheck[]', '2'); ?> />
+
+4  我想控制我的错误显示信息：
+如何显示？
+所有信息一起显示 validation_errors()函数：<?php echo validation_errors(); ?>
+将错误信息分开显示 form_error()函数：
+<h5>Username</h5>
+<?php echo form_error('username'); ?>
+<input type="text" name="username" value="<?php echo set_value('username'); ?>" size="50" />
+<h5>Password</h5>
+<?php echo form_error('password'); ?>
+<input type="text" name="password" value="<?php echo set_value('password'); ?>" size="50" />
+
+我想自定义错误时的显示消息：
+$this->form_validation->ser_message(<rule>,<error message>);
+其中 rule 是该条定义规则的名称，Error Message 该规则会显示的错误文本。
+如果你在错误信息中包含了 %s，它将插入显示出你在表单域中设置的别名。
+
+5 是时候领略一些高级特性了：
+5.1
+在检测表单数据时我想自定义回调函数以用于检测
+$this->form_validation->set_rules('username', 'Username', 'callback_username_check');
+要调用一个回调函数只需把函数名加一个"callback_"前缀并放在验证规则里。如果你需要在你的回调函数中调用一个额外的参数，你只需要在回调函数后面用[]把参数（这个参数只能是字符串类型）括起来, 例如: "callback_foo[bar]", 其中bar将成为你的回调函数中的第二个参数.【译者注：第一个参数是input的value值】
+注意：你也可以处理并返回传递给你的回调函数中的表单数据。如果你的回调函数返回了除布尔型的TRUE/FALSE外的任何值，它将被假定数据是你新处理过的表单数据。
+回调函数的定义：
+ public function username_check($str)
+ {
+  if ($str == 'test')
+  {
+   $this->form_validation->set_message('username_check', 'The %s field can not be the word "test"');
+   return FALSE;
+  }
+  else
+  {
+   return TRUE;
+  }
+ }
+ 注意：回调函数必须至少要有一个参数（最多两个?），表示接收到的表单数据
+
+ 5.2
+ 错误信息在html中都是使用<p>标签用于定界符的，我想更改错误的定界符
+ 统一修改：如果需要全局更改错误定界符， 可以在你的控制器中，在表单验证类加载之后添加如下代码
+ $this->form_validation->set_error_delimiters('<div class="error">', '</div>');
+ 单独修改：
+<?php echo form_error('field name', '<div class="error">', '</div>'); ?>
+
+ 5.3
+ 设置一个规则我就要写一个rules,我想把所有的rules统一到一个文件里，而且可以根据 控制类/方法 自适应相应的rule:【这个太多了，具体见：http://codeigniter.org.cn/user_guide/libraries/form_validation.html 】
+
+6 rule 规则整理
+required
+matches[form_item]
+is_unique[table.field]
+min_length[4]
+max_length[20]
+exact_length[10]
+greater_than[10] 如果表单元素值是非数字类型，或小于参数定义的值，则返回FALSE
+less_than[10]
+alpha 如果表单元素值中包含除字母以外的其他字符，则返回FALSE
+alpha_numeric如果表单元素值中包含除字母和数字以外的其他字符，则返回FALSE
+alpha_dash 如果表单元素值中包含除字母/数字/下划线/破折号以外的其他字符，则返回FALSE
+numeric
+integer
+valid_email
+valid_emails如果表单元素值中任何一个值包含不合法的email地址（地址之间用英文逗号分割），则返回FALSE。
+valid_ip
+
+
+==================================================================
+
+视图中的php替代语法：
+<?php echo $val ?> <?=$val?>
+
+<?php if(xxx):?>
+<?php elseif():?>
+<?php else: ?>
+<?php endif ?>
+
+for endfor
+foreach endforeach
+while endwhile
+
+获取视图内容:
+在控制器类中的$this->load->view()第二个参数是传递给视图的数据数组，第三个参数设为ture可以获取视图内容而不直接输出到屏幕
+
+
+===============================================================
+
+模型：
+一些基本的命名载入就不谈了。主要记录模型的一些高级知识：
+1 连接到数据库：
+当模型被载入时（使用$this->load->model）并不会去连接数据库，此时有两种办法可以实现：{yl注：model的构造函数定义里默认使用的partent::__construct();而不是$this->load->database();}
+第一种：在控制器或model的构造函数中使用$this->load->database()
+第二种：可以把第三个参数设置为TRUE来使模型装载函数自动连接数据库；$this->load->model('Model_name', '', TRUE);
+
+2 $this->load->model()参数说明：
+第二个参数为model的别名；
+第三个参数可以是true,也可以是指定的数据库连接数组：
+$config['hostname'] = "localhost";
+$config['username'] = "myusername";
+$config['password'] = "mypassword";
+$config['database'] = "mydatabase";
+$config['dbdriver'] = "mysql";
+$config['dbprefix'] = "";
+$config['pconnect'] = FALSE;
+$config['db_debug'] = TRUE;
+$this->load->model('Model_name', '', $config);
+
+====================================================
+
+辅助函数：(概述)
+每个辅助函数文件仅仅是一些函数的集合。例如，URL Helpers 可以帮助我们创建链接，Form Helpers 可以帮助我们创建表单，Text Helpers 提供一系列的格式化输出方式，Cookie Helpers 能帮助我们设置和读取COOKIE， File Helpers 能帮助我们处理文件，等等。
+CodeIgniter 默认是没有载入辅助函数文件的， 一旦被载入，辅助函数将全局可用，辅助函数文件一般保存在 system/helpers 或 application/helpers 文件夹中。CodeIgniter 将会先在 application/helpers 寻找对应的辅助函数文件， 如果目录不存在或者目录下没有对应的辅助函数文件，CI 才会载入 system/helpers 下的辅助函数文件。
+
+载入：你可以在你的控制器构造函数中载入它们
+$this->load->helper('url');//对应url_helper.php文件
+$this->load->helper( array('helper1', 'helper2', 'helper3') );//一次载入多个辅助函数
+
+扩展辅助函数：
+这里既包含从头写也包括复写（重新定义即可覆盖原有的函数）一个CI自带的：
+1  在application/helpers/ 目录下创建一个新的helper,新helper的名字使用MY_前缀，以_helper.php结尾。如：MY_array_helper.php
+// any_in_array() is not in the Array Helper, so it defines a new function
+function any_in_array($needle, $haystack)
+{
+    $needle = (is_array($needle)) ? $needle : array($needle);
+
+    foreach ($needle as $item)
+    {
+        if (in_array($item, $haystack))
+        {
+            return TRUE;
+        }
+        }
+
+    return FALSE;
+}
+
+// random_element() is included in Array Helper, so it overrides the native function
+function random_element($array)
+{
+    shuffle($array);
+    return array_pop($array);
+}
+
+
+============================================================
+
+类库：
+$this->load->library('form_validation');
+$this->load->library(array('email', 'table'));
+
+扩展类库：
+作为一个额外的功能,当你需要在原始类中简单地添加一些功能时,CodeIgniter能使你的类库extend 自原始类.你甚至可以通过在application/libraries文件夹下安放同名类库文件的方法来完全替换原始类.
+总之:
+你可以创建全新的类库.
+你可以扩展原始类库.
+你可以替换原始类库.（除了数据库类无法被扩展或替换，剩余其他类均可。）
+详细内容可参照：
+http://codeigniter.org.cn/user_guide/general/creating_libraries.html
+
+==================================================================
+
+公共函数
+CodeIgniter 使用了一些全局定义的函数来完成操作，在任何情况下你都能够使用这些函数。使用他们不需要载入任何类库或辅助函数。
+1 is_php('version_num')
+若正在使用的php版本等于或高于version_num则返回true,否则false
+2 is_really_writable('path/to/file')
+判断文件（夹）是否有可写权限
+3 config_item('item_key')
+直接从config文件获得配置值
+4 show_error('message'), show_404('page'), log_message('level', 'message')
+错误处理函数
+5 set_status_header(code, 'text');
+6 remove_invisible_characters($str)
+7 html_escape($mixed)
+利用此功能可以方便的使用htmlspecialchars()函数。它接受字符串和数组。有助于防止跨站脚本攻击（XSS）。感觉是多了个数组功能
+
+
+===============================================================
+CI错误记录与错误报告：
+错误记录：
+CI支持在程序中记录一些信息到日志中：
+1 设定application/config/config.php文件中的"threshold"值
+2 在程序中使用log_message（'error|debug|info','message'）即可记录日志信息到application/logs中
+
+错误报告：
+ CodeIgniter的错误报告函数是一个简单的程序接口，可以在整个应用程序里使用。 不用考虑类或者是函数的范围
+1 show_error('消息' [, int $status_code = 500 ] [, string $heading = 'An Error Was Encountered'])
+这个函数将会使用以下错误模版来显示错误消息:application/errors/error_general.php
+可选参数 $status_code 决定在显示错误的同时将会发送哪种 HTTP 状态代码。
+可选参数 $heading 决定错误模版h1标签内容。
+2 show_404('页面' [, 'log_error'])
+这个函数将会使用以下错误模版来显示 404 错误信息:application/errors/error_404.php
+传递给该函数的字符串代表的是找不到的文件路径。注意CodeIgniter会在找不到目标控制器情况下，自动显示404消息。
+
+3 此处有个遗留问题，能否查看通过web查看log
+
+
+=====================================================================
+
+其他：
+1  cli运行
+当使用CI模型时也支持在命令行执行（请求）
+正常请求：example.com/index.php/tools/message/to
+cli方式运行：$ php index.php tools message <arg>
+
+2  安全
+在接收任何数据到你的程序之前，不管是表单提交的 POST 数据、COOKIE 数据、URI 数据、XML-RPC 数据、还是 SERVER 数组中的数据，我们都推荐你实践下面的三个步骤：
+(1) 过滤不良数据. (xss)
+(2) 验证数据以确保符合正确的类型, 长度, 大小等.（表单验证类）
+(3) 在提交数据到你的数据库之前将其转换. 
+
+3  开发规范
+PHP 闭合标签：所有的php文件应该省略这个php闭合标签，并插入一段注释来标明这是文件的底部并定位这个文件在这个应用的相对路径。
+<?php
+
+echo "Here's my code!";
+
+/* End of file myfile.php */
+/* Location: ./system/modules/mymodule/myfile.php */
+
+======================================================
+
+
+下面开始我们的重头戏--CI数据库类
+1 数据库配置：
+详情见：http://codeigniter.org.cn/user_guide/database/configuration.html
+
+2 数据库快速入门：
+  2.1初始化：this->load->database();
+  
+  2.2 查询
+  2.2.1多结果标准查询（对象形式）$query->result() 
+$query = $this->db->query('SELECT name, title, email FROM my_table');
+foreach ($query->result() as $row)
+{
+    echo $row->title;
+    echo $row->name;
+    echo $row->email;
+}
+echo 'Total Results: ' . $query->num_rows();
+上面的result()函数返回一个对象的数组。例如：$row->title
+
+ 2.2.2多结果标准查询（数组形式）$query->result_array()
+$query = $this->db->query('SELECT name, title, email FROM my_table');
+foreach ($query->result_array() as $row)
+{
+    echo $row['title'];
+    echo $row['name'];
+    echo $row['email'];
+}
+上面的result_array()函数返回一个带下标的数组。例如：$row['title']
+
+ 2.2.3 测试查询结果
+ $query=$this->db->query('select * from mytable');
+ if($query->num_rows() > 0){
+	foreach($query->result_array() as $row){
+		xxxxx
+	}
+ }
+
+2.3 插入
+$sql = "INSERT INTO mytable (title, name) 
+        VALUES (".$this->db->escape($title).", ".$this->db->escape($name).")";
+$this->db->query($sql);
+echo $this->db->affected_rows();
+
+2.4 快捷查询与插入 active recode类（CI的db类也有原生的类似插入功能：insert_string()与update_string(),见下文4.5查询辅助函数）
+$this->db->get('mytable');
+
+$data = array(
+               'title' => $title,
+               'name' => $name,
+               'date' => $date
+            );
+$this->db->insert('mytable',$data);
+// Produces: INSERT INTO mytable (title, name, date) VALUES ('{$title}', '{$name}', '{$date}')
+
+
+3 数据库连接：
+3.1 手动建立数据库连接：
+$this->load->database();
+可使用的三个参数：
+1 数据库连接值，用数组或DSN字符串传递。
+2 是否返回连接ID，TRUE/FALSE (boolean),默认值为FALSE (“连接多数据库时需要设为TRUE”)。
+3 是否启用 Active Record 类,TRUE/FALSE (boolean),默认值为 NULL(TRUE，在配置文件中的$active_recode,这里应该是为区别全局设置给了途径)。如有疑问，请查看/system/core/Loader.php的database()方法
+
+3.2 重新连接 / 保持连接有效
+当你正在进行一些重量级的PHP操作(例如处理图片)时，如果超出了数据库服务器的空闲超时限度，你应该考虑在执行更多查询之前使用reconnect()方法来向服务器发送ping命令，这样可以优雅地保持或重新建立连接。
+$this->db->reconnect();
+
+3.3 关闭连接
+虽然CodeIgniter 可以智能的管理并自动关闭数据库连接，你仍可以用下面的方法显式的关闭掉。
+$this->db->close();
+
+4 查询：
+4.1 基本查询
+$this->db->query('query string');
+使用第二个参数可以封装查询，见下文
+
+4.2 转义查询：
+	$this->db->escape() 
+	这个函数将会确定数据类型，以便仅对字符串类型数据进行转义。并且，它也会自动把数据用单引号括起来，所以你不必手动添加单引号，用法如下：
+$sql = "INSERT INTO table (title) VALUES(".$this->db->escape($title).")";
+
+	$this->db->escape_like_str() 
+	这个函数专门用于转义sql查询中的like字句，可以安全转义like中的特殊字符（% -）
+$search = '20% raise';
+$sql = "SELECT id FROM table WHERE column LIKE '%".$this->db->escape_like_str($search)."%'";
+
+4.3 封装查询
+封装，通过让系统为你组装各个查询语句，能够简化你的查询语法。参加下面的范例：
+$sql = "SELECT * FROM some_table WHERE id = ? AND status = ? AND author = ?"; 
+$this->db->query($sql, array(3, 'live', 'Rick'));
+查询语句中的问号会自动被查询函数中位于第二个参数位置的数组中的值所替代。
+使用封装查询的第二个好处是所有的值都会被自动转义，形成了较为安全的查询语句。你无需手动地去转义这些数据；控制器将会自动为你进行。
+
+4.4 使用查询结果（$this->db->query()等查询调用返回的$query结果集对象）
+已介绍的：
+$query->result()
+$query->result_array()
+新的：
+$query->row([num])//默认返回$query结果集的第一条记录对象，使用参数时获得n+1条记录对象,n>范围时返回第一条记录对象
+$query->row_array([num])
+
+除此以外, 我们还可以使用下面的方法通过游标的方式获取记录：
+$row = $query->first_row()
+$row = $query->last_row()
+$row = $query->next_row()
+$row = $query->previous_row()
+默认情况下他们将返回一个 object，同时你也可以传递参数 "array" 以便使用 array 的方式获取数据
+$row = $query->first_row('array')
+$row = $query->last_row('array')
+$row = $query->next_row('array')
+$row = $query->previous_row('array')
+
+结果集辅助函数
+$query->num_rows()
+$query->num_fields()
+$query->free_result(),释放链接占用的内存，释放后$query不可用
+
+4.5查询辅助函数（$this->db的方法功能）
+$this->db->insert_id()
+$this->db->affected_rows()
+$this->db->count_all();
+$this->db->platform() //输出系统使用的数据库平台(MySQL, MS SQL, Postgres……)
+$this->db->version() //输出系统正在运行的数据库版本号
+$this->db->last_query(); //返回最后运行的查询（是查询语句，不是查询结果）
+
+$this->db->insert_string();
+这个函数简化了写入数据库的insert函数,被插入的数据会被自动转换和过滤，生成安全的查询语句。它返回一个标准的SQL insert字符串。例如：
+$data = array('name' => $name, 'email' => $email, 'url' => $url);
+$str = $this->db->insert_string('table_name', $data);
+//INSERT INTO table_name (name, email, url) VALUES ('Rick', 'rick@example.com', 'example.com')
+
+$this->db->update_string();
+这个函数简化了写入数据库的update操作，被插入的数据会被自动转换和过滤，生成安全的查询语句。它返回一条格式正确的SQL update字符串。例如：
+$data = array('name' => $name, 'email' => $email, 'url' => $url);
+$where = "author_id = 1 AND status = 'active'"; 
+$str = $this->db->update_string('table_name', $data, $where);
