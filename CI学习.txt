@@ -1,37 +1,70 @@
-common.php中的php_version 与 DIRECTORY_SEPARATOR 在哪定义的？
+第一部分： 简单入门
+0 如果CI没有放到网站根目录下，比如htdocs/CI/ 时，需要修改htdocs/CI/application/config/config.php:
+$config['base_url'] = 'http://www.example.com/CI/' 
 
+1 路由：http://example.com/[控制器类名]/[控制器方法名]/[所需参数]
+例：www.example.com/CI/pages/view
+透露出在controller中有一个pages.php文件，该文件中有一个Pages类，类中有一个view方法。并且在views/pages/中有相应的文件
 
+2 类名一律首字母大写。不管controller还是model。model类需要加 _model后缀
 
-在URI中必须有index.php吗？
-route数组的定义键--值，键应该在其前面附加什么组成完整的uri?答：应该附加/index.php/
-所以目前url中还必须要有index.php，并且route数组的键是以index.php为基础的
+3 在view目录中，一个控制器一个目录，目录名即控制器名
 
-（apache）如何删除index.php
-删除 index.php 文件
+4 route规则都是以domain/index.php/xxxx中的xxxx算起的
+默认路由指的是url为domain时的路由，而不是都不匹配时的路由！！
+路由规则还是不要乱添加，因为添加以后可能会导致默认的路由规则丢失，反而需要定义一个默认规则（not default_controller）
+不是，那是因为你自定义的规则被匹配到了
 
+5 在controller中的构造函数中使用
+parent::__construct();
+$this->load->application下的目录名单数('文件名');，然后使用$this->文件名引用相应的对象
+
+例：
+$this->load->model('news_model');//加载News_Model类并初始化对象
+加载相应的model并初始化对象后后就可以使用$this->news_model来引用相应的model对象。
+控制器的作用使用model将数据放到$data[]数组中，然后load view。
+
+6 model文件：
+命名：xxx_model.php
+类：class Xxx_Model extends CI_Model{}
+连接数据库：$this->load->database()
+使用: $this->db->数据库方法
+表名：在数据库方法中指定
+
+7 获取post数据与get数据
+不是通过在controller中获得然后交给model，而是直接在model中获得，在model的需要获取get,post数据的地方使用输入类的方法，输入类是默认加载。例$this->input->post('title')
+
+8 视图
+当我们一次性载入多个视图的时候，你只需在第一个视图传入数据就可以了($data)
+
+9 在url中删除index.php
 默认情况下，index.php 文件将被包含在你的 URL 中：
-
 example.com/index.php/news/article/my_article
 你可以很容易的通过 .htaccess 文件来设置一些简单的规则删除它。下面是一个例子，使用“negative”方法将非指定内容进行重定向：
 
-;;;;
 RewriteEngine on
-
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d        //此处有大坑。加上这两句可保证一般css、js文件正常加载。(注意删掉这句注释哦)
-
 RewriteCond $1 !^(index\.php|images|robots\.txt)
 RewriteRule ^(.*)$ /index.php/$1 [L]
-;;;
 
 注意:如果你的项目不在根目录请把上面这一句改为：RewriteRule ^(.*)$ index.php/$1 [L]
 
+yulin:
+在实际应用中，在CI目录中设置.htaccess，内容为：
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d       
 
+RewriteCond $1 !^(index\.php|images|robots\.txt)
+RewriteRule ^(.*)$  index.php/$1 [L]
+
+
+
+第二部分 —— codeigniter 进阶
 
 2014/10/27
 发现active recode有一个大问题，在插入数据时及时表的相应字段定义为not null，但是在使用$this->db->insert()等相关函数进行插入操作时，即使相应字段都没有给予，依然可以正常插入，默认没指定的字段值都为''。所以在下面的学习中一要注意CI中是否有关于这方面的进一步说明完善，二就是要在使用insert插入数据库之前就要保证知道这些东西，不要指望insert自己会返回错误！
-
-
 
 ==================================================================
 
@@ -105,7 +138,7 @@ $this->input->is_ajax_request()检查服务器头HTTP_X_REQUESTED_WITH是否被�
 5 准备数据，插入数据库。
 **************************************************************
 
-这里表单验证累form_validation的作用为接收端1 2 3 4
+这里表单验证类form_validation的作用为接收端1 2 3 4
 注：我觉得也就是因为ci将表单验证类以及表单辅助函数写到了view里面，所以要把表单的创建与验证都写到一个方法里，这样避免了在创建时出错。
 1  基本用法：
 在控制器的方法中：
@@ -118,7 +151,8 @@ $this->form_validation->set_rules('username', 'Username', 'trim|required|min_len
 $this->form_validation->set_rules('password', 'Password', 'trim|required|matches[passconf]|md5');
 $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
 
-在上面的例子里，我们“修整（trimming，去掉字符串两端空白）”了数据，转换密码为MD5，将用户名通过“xss_clean”函数处理去掉了有害数据。
+在上面的例子里，我们“修整（trimming，去掉字符串两端空白）”了数据，转换密码为MD5，
+将用户名通过“xss_clean”函数处理去掉了有害数据。
 任何PHP自身接收一个参数的函数都可以被用作一个规则，比如 htmlspecialchars, trim, MD5, 等。
 注意: 你一般会在验证规则之后使用这些预处理功能，这样如果发生错误，原数据将会被显示在表单。
 
@@ -288,6 +322,41 @@ function random_element($array)
     return array_pop($array);
 }
 
+==================================================================
+辅助函数备忘纪录
+1 日期辅助函数
+now()
+mdate()
+mysql_to_unix()
+standard_date()
+
+2文件辅助函数
+注意ci文件辅助函数中的相对路径都是相对于该站点的index.php所在的路径，而不是当前所在的控制器或视图文件的路径。这是因为CodeIgniter使用的前端控制器(front controller)，所以所有的路径永远都是相对于index.php所在路径。
+read_file('path/to/file')  感觉像是file_get_contents
+write_file('path/to/file',$data[,$perm]) 
+get_filenames('path/to/dir'); 获取目录下所有文件名组成的数组
+get_file_info('path/to/file'［, $file_information］)通过给定的路径和文件名，获取到文件path/to/file的文件名，文件大小，文件更改日期等。第二个参数允许你说明需要返回的信息，这个参数的选项包括'name', 'server_path', 'size', 'date', 'readable', 'writable', 'executable', 'fileperms'。如果文件不存在则返回FALSE。
+
+3 字符串辅助函数
+random_string() 
+trim_slashes() 去掉任何出现在字符串开头或结尾的斜线。
+reduce_multiples() 去掉多余的一个紧接着一个重复出现的特殊字符。
+
+4 url辅助函数
+site_url([uri])返回站点的URL,结果会包含index.php
+base_url([uri])返回站点的url,结果不包含index.php
+current_url() 返回当前页面的完整url
+uri_string() 返回包含了此函数页面的uri段
+anchor(uri segments, text, attributes) 创建基于本地站点url的<a>标签
+anchor(uri segments, text, attributes)
+第一个参数包含你想附加到URL的任何段.像上面的site_url() 函数一样,段可以是字符串或数组.
+注意:  如果你创建在应用程序内部的链接没有包含基本URL(http://...),这个参数会从你配置文件信息中自动加载。只需要写上你的 URL 分段即可。
+第二个参数是你想给链接的内容（<a>标签中间的内容）.如果让它为空,将会由URL替代.
+第三个参数包含一组你想附加给链接的属性.这些属性可以是简单的字符串或相关的数组.
+echo anchor('news/local/123', 'My News', 'title="News title"');
+输出: <a href="http://example.com/index.php/news/local/123" title="News title">My News</a>
+
+redirect()通过发送HTTP头，命令客户端转向到您指定的URL
 
 ============================================================
 
@@ -504,3 +573,65 @@ $this->db->update_string();
 $data = array('name' => $name, 'email' => $email, 'url' => $url);
 $where = "author_id = 1 AND status = 'active'"; 
 $str = $this->db->update_string('table_name', $data, $where);
+
+
+
+第三部分——实战感悟
+1.在一个类开始的初始化参数时，在所有函数外的初始化只能初始化为常量，即数字，字符串，布尔值等，不能使用变量、函数、define常量值
+
+2.在ci框架中可以在application  中的core 文件夹中定义model与control的基类以扩展其功能
+这非常适合在自定义及控制器类中加载公共资源，定义应用公共常量与变量，判断用户登录与否状态(session)等等
+在自定义model基类中增加非控制器文件访问限制defined('BASEPATH') OR exit('No direct script access allowed');与加载数据库资源。
+
+
+3.nginx中配置ci不显示index.php Nginx規則:
+location / {
+root 專案;
+index index.html index.php index.htm;
+if (-f $request_filename/index.html){
+rewrite (.*) $1/index.html break;
+}
+if (-f $request_filename/index.php){
+rewrite (.*) $1/index.php;
+}
+if (!-f $request_filename){
+rewrite (.*) /index.php?/$1;
+}
+}
+
+4 
+所有类库与model的加载都是单例模式，即使调用多次load也只会初始化一次
+model可以load其他model
+
+5
+多个应用程序共享一个ci，我感觉最简单的办法就是在index.php中增加一个对$_SERVER['HTTP_HOST']的判断，决定$application_folder的值
+文档上的办法是每个application都是applications中的一个子文件夹，而且都有各自的‘index.php’。所以我觉得这隐含了两点：1 各个application的index.php不重名 2 需要在web配置文件中独立各个application的配置，比如rewrite规则与fastcgi_index
+
+6
+domain_test登陆验证实现总结
+在实现登陆验证过程中遇到了困难，总结如下
+1 需要清晰的是当已经有PHPSESSID的情况下调用session_start()会直接恢复相应会话，不需要提前回去该cookie值然后设置session_id。
+2当首页都需要登陆后才可以看时，session_start()应该放在首页控制类的构造函数中，然后验证相关的session变量是否设置、值是否正确来决定是否继续或者跳转的验证页，在验证页中指定提交验证的后台控制程序，在后台程序中验证输入来决定是否设置相应的标识登陆的session变量并进行跳转。
+3 在ci中，如果在首页控制类的构造函数中使用加载验证页的方式，那要在相应的view文件中使用exit()
+
+7关于扩展ci
+ 0 扩展前缀设置： 在config/config.php 中$config['subclass_prefix'] = 'MY_';
+ 1 扩展核心：在application/core中增加相应PHP文件，可以在此扩展CI_Controller，CI_Model，application/core/Base_Controller.php
+ class Base_Controller extends CI_Controller ,
+ 2 扩展library
+ 在application/libraries 中增加相应php文件。例如application/libraries/MY_Email.php,
+ class MY_Email extends CI_Email
+ 要在你自定义的类库中访问CodeIgniter的原始资源,你必须使用 get_instance() 函数.这个函数返回一个CodeIgniter super object：
+ $CI =& get_instance();
+$CI->load->helper('url');
+$CI->load->library('session');
+$CI->config->item('base_url');
+ 3 扩展辅助函数
+ 在application/helper中增加相应php文件，直接编写函数，注意文件命名 application/helpers/MY_url_helper.php
+
+8 CI中的缓存并没有 失效控制 差评！
+
+
+
+
+
