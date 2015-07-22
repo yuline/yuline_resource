@@ -1,58 +1,58 @@
 
 
-1 ·�ɣ�http://example.com/[����������]/[������������]/[�������]
-����www.example.com/CI/pages/view
-͸¶����controller����һ��pages.php�ļ������ļ�����һ��Pages�࣬������һ��view������������views/pages/������Ӧ���ļ�
+1 路由：http://example.com/[控制器类名]/[控制器方法名]/[所需参数]
+例：www.example.com/CI/pages/view
+透露出在controller中有一个pages.php文件，该文件中有一个Pages类，类中有一个view方法。并且在views/pages/中有相应的文件
 
-2 ����һ������ĸ��д������controller����model��
-model����Ҫ�� _model��׺
+2 类名一律首字母大写。不管controller还是model。
+model类需要加 _model后缀
 
-3 ��viewĿ¼�У�һ��������һ��Ŀ¼��Ŀ¼������������
+3 在view目录中，一个控制器一个目录，目录名即控制器名
 
-4 route��������domain/index.php/xxxx�е�xxxx�����
-Ĭ��·��ָ����urlΪdomainʱ��·�ɣ������Ƕ���ƥ��ʱ��·�ɣ���
-·�ɹ����ǲ�Ҫ�����ӣ���Ϊ�����Ժ���ܻᵼ��Ĭ�ϵ�·�ɹ���ʧ��������Ҫ����һ��Ĭ�Ϲ���not default_controller��
-���ǣ�������Ϊ���Զ���Ĺ���ƥ�䵽��
+4 route规则都是以domain/index.php/xxxx中的xxxx算起的
+默认路由指的是url为domain时的路由，而不是都不匹配时的路由！！
+路由规则还是不要乱添加，因为添加以后可能会导致默认的路由规则丢失，反而需要定义一个默认规则（not default_controller）
+不是，那是因为你自定义的规则被匹配到了
 
-5 ��controller�еĹ��캯����ʹ��
+5 在controller中的构造函数中使用
 
-������������ʹ��model�����ݷŵ�$data[]�����С�
+控制器的作用使用model将数据放到$data[]数组中。
 
-6 model�ļ���
-������xxx_model.php
-�ࣺclass Xxx_Model extends CI_Model{}
-�������ݿ⣺$this->load->database()
-ʹ��: $this->db->���ݿⷽ��
-�����������ݿⷽ����ָ��
+6 model文件：
+命名：xxx_model.php
+类：class Xxx_Model extends CI_Model{}
+连接数据库：$this->load->database()
+使用: $this->db->数据库方法
+表名：在数据库方法中指定
 
-7��ȡpost������get����
-����ͨ����controller�л��Ȼ�󽻸�model������ֱ����model�л�ã���model����Ҫ��ȡget,post���ݵĵط�ʹ��������ķ�������������Ĭ�ϼ��ء���$this->input->post('title')
+7获取post数据与get数据
+不是通过在controller中获得然后交给model，而是直接在model中获得，在model的需要获取get,post数据的地方使用输入类的方法，输入类是默认加载。例$this->input->post('title')
 
 
 
-8 ��������--������
-ע�⣺�����ʹ�� URI ·�����ԣ��򴫵ݵ������е� URI Ƭ�ν�������·��һ�Ρ�������
-�������վ������ĳ��URI ���� �û�ֱ�ӴӸ�Ŀ¼���ʵ�ʱ��CodeIgniter �����Ĭ�Ͽ�����������
-������URI����ʾ404
+8 常规主题--控制器
+注意：如果你使用 URI 路由特性，则传递到方法中的 URI 片段将被重新路由一次。？？、
+当你的网站不存在某个URI 或者 用户直接从根目录访问的时候，CodeIgniter 会加载默认控制器。？？
+不存在URI会显示404
 
-9 ��ͼ
-������һ������������ͼ��ʱ����ֻ���ڵ�һ����ͼ�������ݾͿ�����($data)
+9 视图
+当我们一次性载入多个视图的时候，你只需在第一个视图传入数据就可以了($data)
 
-10��url��ɾ��index.php
-Ĭ������£�index.php �ļ�������������� URL �У�
+10在url中删除index.php
+默认情况下，index.php 文件将被包含在你的 URL 中：
 example.com/index.php/news/article/my_article
-����Ժ����׵�ͨ�� .htaccess �ļ�������һЩ�򵥵Ĺ���ɾ������������һ�����ӣ�ʹ�á�negative����������ָ�����ݽ����ض���
+你可以很容易的通过 .htaccess 文件来设置一些简单的规则删除它。下面是一个例子，使用“negative”方法将非指定内容进行重定向：
 
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d        //�˴��д�ӡ�����������ɱ�֤һ��css��js�ļ��������ء�(ע��ɾ�����ע��Ŷ)
+RewriteCond %{REQUEST_FILENAME} !-d        //此处有大坑。加上这两句可保证一般css、js文件正常加载。(注意删掉这句注释哦)
 RewriteCond $1 !^(index\.php|images|robots\.txt)
 RewriteRule ^(.*)$ /index.php/$1 [L]
 
-ע��:��������Ŀ���ڸ�Ŀ¼���������һ���Ϊ��RewriteRule ^(.*)$ index.php/$1 [L]
+注意:如果你的项目不在根目录请把上面这一句改为：RewriteRule ^(.*)$ index.php/$1 [L]
 
 yulin:
-��ʵ��Ӧ���У���CIĿ¼������.htaccess������Ϊ��
+在实际应用中，在CI目录中设置.htaccess，内容为：
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
