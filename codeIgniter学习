@@ -1,5 +1,4 @@
-0 如果CI没有放到网站根目录下，比如htdocs/CI/ 时，需要修改htdocs/CI/application/config/config.php:
-$config['base_url'] = 'http://www.example.com/CI/' 
+
 
 1 路由：http://example.com/[控制器类名]/[控制器方法名]/[所需参数]
 例：www.example.com/CI/pages/view
@@ -16,12 +15,6 @@ model类需要加 _model后缀
 不是，那是因为你自定义的规则被匹配到了
 
 5 在controller中的构造函数中使用
-parent::__construct();
-$this->load->application下的目录名单数('文件名');，然后使用$this->文件名引用相应的对象
-
-例：
-$this->load->model('news_model');//加载News_Model类并初始化对象
-加载相应的model并初始化对象后后就可以使用$this->news_model来引用相应的model对象。
 
 控制器的作用使用model将数据放到$data[]数组中。
 
@@ -62,7 +55,7 @@ yulin:
 在实际应用中，在CI目录中设置.htaccess，内容为：
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d       
+RewriteCond %{REQUEST_FILENAME} !-d
 
 RewriteCond $1 !^(index\.php|images|robots\.txt)
 RewriteRule ^(.*)$  index.php/$1 [L]
