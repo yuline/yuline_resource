@@ -1,0 +1,60 @@
+20150726
+sed 
+1 在行首添加字符串 sed 's/^/xxx/'
+2 在行尾添加字符串 sed 's/$/xxx/'
+
+3 sed命令提高 N命令，默认情况下sed无法匹配到行尾的\n并对其进行替换操作，但是N指令可以使我们匹配到奇数行尾的\n，使在sed内部每两行看成以'\n'分割的一行，
+例，假设原文本为：
+This is my cat
+  my cat's name is betty
+This is my dog
+  my dog's name is frank
+This is my fish
+  my fish's name is george
+则执行sed 'N;s/my/your/' pet.txt后即为
+This is your cat
+  my cat's name is betty
+This is your dog
+  my dog's name is frank
+This is your fish
+  my fish's name is george
+
+4 sed 格式
+[address[,address]][!][{]cmd[}]
+4.1 address可以是一个数字，也可以是一个模式，可以使用逗号分割两个address表示一个区间；
+第二个address可以使用＋num，表示从第一个address再加上num行。
+
+4.2 ！表示匹配address的行不执行cmd
+
+4.3 cmd可以包含多个命令，使用;分割，可以使用大括号包起来作为嵌套命令。
+# 对3行到第6行，执行命令/This/d
+$ sed '3,6 {/This/d}' pets.txt
+
+# 对3行到第6行，匹配/This/成功后，再匹配/fish/，成功后执行d命令
+$ sed '3,6 {/This/{/fish/d}}' pets.txt
+
+
+AWK
+awk其实是一个脚本解析器。支持基本的逻辑判断，函数功能等
+用法：
+awk [option] program file
+其中program 格式为'condition{}' 或 'BGEIN{} condition{} END{}'，condition可省略
+awk 自动（默认）支持数字格式
+
+1 关于condition
+condition 中可以使用 && || ! 以及 == ~ 运算符，也可以直接使用正则表达式表示行内匹配，类似grep
+ awk '$3==0 && $6=="ESTABLISHED" || NR==1 {printf "%02s %s %-20s %-20s %s\n",NR, FNR, $4,$5,$6}' netstat.txt
+awk '$6 ~ /FIN/ || NR==1 {print NR,$4,$5,$6}' OFS="\t" netstat.txt
+awk '$6 !~ /FIN|TIME/ || NR==1 {print NR,$4,$5,$6}' OFS="\t" netstat.txt
+awk '!/WAIT/' netstat.txt
+
+2 拆分文件
+ awk 'NR!=1{print > $6}' netstat.txt
+该语句作用是将netstat.txt的行以$6进行分类，$6相同的分到一个文件中，文件名就是$6。
+
+你也可以把指定的列输出到文件：
+awk 'NR!=1 {print $5,$6 > $6}' netstat.txt
+
+3 {}中可以包含多个执行语句，执行语句使用 ; 分割
+
+
