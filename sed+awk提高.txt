@@ -20,13 +20,13 @@ This is your fish
   my fish's name is george
 
 4 sed 格式
-[address[,address]][!][{]cmd[}]
+[address[,address]][!][{]cmd[}] 可以使用‘;’分割多个这种形式的表达式。
 4.1 address可以是一个数字，也可以是一个模式，可以使用逗号分割两个address表示一个区间；
 第二个address可以使用＋num，表示从第一个address再加上num行。
 
 4.2 ！表示匹配address的行不执行cmd
 
-4.3 cmd可以包含多个命令，使用;分割，可以使用大括号包起来作为嵌套命令。
+4.3 cmd可以包含多个命令（也就是说同一个address应用多个执行cmd）则需要将多个cmd使用;分割且包含在{}中!!!!。大括号包起来 也可以 作为嵌套命令。
 # 对3行到第6行，执行命令/This/d
 $ sed '3,6 {/This/d}' pets.txt
 
