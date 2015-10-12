@@ -53,6 +53,6 @@ re.search()、re.match()、 re.compile()、re.findall()等函数都接受一个f
 **5.替换与拆分**
 
 - re.sub(pattern, repl, string, count=0, flag=0)   &nbsp;#
-repl表示替换后的字符串，可以使用向后引用以利用匹配的子表达式内容，在python中使用 \num 与 \g<name> 的方式。 count表示替换的次数，默认全部替换。 
+repl表示替换后的字符串，可以使用向后引用以利用匹配的子表达式内容，在python中使用 \num 与 \g\<name\> 的方式。 count表示替换的次数，默认全部替换。 
 - re.subn() #与 re.sub()类似，但会返回完成的替换次数。  
 - re.split(pattern,string,maxsplit=0,flag=0) &nbsp;&nbsp;#补充通过将pattern整体包括在小括号里，re.split()可以取得分割字符串，非常类似于str.partition()
