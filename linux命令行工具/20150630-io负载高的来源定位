@@ -1,0 +1,15 @@
+主题：磁盘io负载高的来源定位。
+工具回溯： top/vmstat/mpstat(看出iowait高) --> iostat(哪块盘的压力大) --> iotop(那个进程导致的) --> pt-ioprofile(进程使用哪个文件导致的)
+
+在一般运维工作中经常会遇到这么一个场景，服务器的IO负载很高（iostat中的util），但是无法快速的定位到IO负载的来源进程和来源文件导致无法进行相应的策略来解决问题。
+
+step1: top/vmstat/mpstat
+step2: iostat 查看各个磁盘的IO情况
+step3: iotop定位负载来源进程
+step4: pt-ioprofile定位负载来源文件
+pt-ioprofile的原理是对某个pid附加一个strace进程进行IO分析
+安装：https://www.percona.com/doc/percona-toolkit/2.2/pt-ioprofile.html
+使用：pt-ioprofile --profile-pid=xx
+默认情况下是以时间显示各个进程的io消耗。对于定位问题更有用的是通过IO的吞吐量来进行定位。使用参数 --cell=sizes，该参数将结果已 B/s 的方式展示出来：
+pt-ioprofile --profile-pid=xx --cell=sizes
+

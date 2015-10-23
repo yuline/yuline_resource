@@ -1,0 +1,303 @@
+python
+1 数字与unicode的转换 
+字符－－>数字  ord()
+数字 --> 字符  chr()
+2 encode 与 decode  将字符串在unicode与其他编码类型之间转换
+3 len()获得字符串的字符个数，列表的元素数 os.path.abs('.')获得的是执行脚本时所在的环境目录,等同于sys.path[0]，获得当前文件名使用__file__,然后通过os.path.dirname()获取目录名
+而包的导入都是以执行主程序的文件路径为基准的！
+
+4 list 可变 有序  可重复
+tuple 不可变 有序 可重复
+dict 可变 无序 key不重复
+set 可变 无序 不重复
+对于不变对象来说，调用对象自身的任意方法，也不会改变该对象自身的内容。相反，这些方法会创建新的对象并返回，这样，就保证了不可变对象本身永远是不可变的。
+
+5 isinstance(a,(int,float))
+
+6 Python函数在定义的时候，默认参数L的值就被计算出来了，即[]，因为默认参数L也是一个变量，它指向对象[]，每次调用该函数，如果改变了L的内容，则下次调用时，默认参数的内容就变了，不再是函数定义时的[]了。
+所以，定义默认参数要牢记一点：默认参数必须指向不变对象！
+
+7
+那么，如何判断一个对象是可迭代对象呢？方法是通过collections模块的Iterable类型判断：
+>>> from collections import Iterable
+>>> isinstance('abc', Iterable) # str是否可迭代
+
+8 Iterable表示是可迭代的，如列表，字符串，元祖，生成器等，而Iterator是迭代器，惰性计算，可以使用iter()将序列作为参数返回迭代器。
+Iterator对象表示的是一个数据流，Iterator对象可以被next()函数调用并不断返回下一个数据，直到没有数据时抛出StopIteration错误。可以把这个数据流看做是一个有序序列，但我们却不能提前知道序列的长度，只能不断通过next()函数实现按需计算下一个数据，所以Iterator的计算是惰性的，只有在需要返回下一个数据时它才会计算。
+
+9 在使用高阶函数（如map,reduce,filter）时，因为需要使用一个函数作为参数，但是有时函数不只需要Iterable的元素作为参数，还需要其他参数，此时可以定义一个函数，该函数接受这个参数并返回一个用于高阶函数的函数参数的函数。
+
+高阶函数的第二个参数是一个可迭代对象Iterable，map filter返回的是一个Iterator,sorted返回一个列表
+
+10一个函数可以返回一个计算结果，也可以返回一个函数。返回一个函数时，牢记该函数并未执行，返回函数中不要引用任何可能会变化的变量。
+
+11 在一个函数内部在定义一个函数即为闭包，闭包可以引用外部定义函数的局部变量与参数
+
+12 装饰器就是一个以函数为参数并且返回一个函数结果的函数；如果在使用装饰器时希望带有自定义参数，则需要再使定义一个返回装饰器的函数，将装饰器作为该函数的闭包，这样装饰器内部就可以使用外部的参数了。
+
+13 当函数的参数个数太多，需要简化时，使用functools.partial可以创建一个新的函数，这个新函数可以固定住原函数的部分参数，从而在调用时更简单。 
+创建偏函数时，实际上可以接收函数对象、*args和**kw这3个参数，当传入：
+
+int2 = functools.partial(int, base=2)
+实际上固定了int()函数的关键字参数base，也就是int2('10010')
+相当于：
+kw = { 'base': 2 }
+int('10010', **kw)
+
+当传入：max2 = functools.partial(max, 10)
+实际上会把10作为*args的一部分自动加到左边，也就是：
+max2(5, 6, 7)相当于：
+args = (10, 5, 6, 7) 
+max(*args)
+
+14模块及其作用域
+python使用包＋模块的模式封装函数与类。模块就是一个.py文件，而包则是模块文件的目录。包可以是多层目录结构，也就是说包里面可以含有包。
+模块里面正常定义的函数与变量都是可在外部公开访问的，__name__形式的变量是特殊变量，自定义变量不要使用这种方式，_name,__name形式的变量与函数为是私有函数，不应该在模块外部访问
+
+15 
+默认情况下，Python解释器会搜索当前目录、所有已安装的内置模块和第三方模块，搜索路径存放在sys模块的path变量中。如果我们要添加自己的搜索目录，有两种方法：
+
+一是直接修改sys.path，添加要搜索的目录：
+>>> import sys
+>>> sys.path.append('/Users/michael/my_py_scripts')
+
+第二种方法是设置环境变量PYTHONPATH，该环境变量的内容会被自动添加到模块搜索路径中。注意只需要添加你自己的搜索路径，Python自己本身的搜索路径不受影响。
+
+
+20150914
+os.path.abs('.')获得的是执行脚本时所在的环境目录,等同于sys.path[0]，获得当前文件名使用__file__,然后通过os.path.dirname()获取目录名
+而包的导入都是以执行主程序的文件路径为基准的！
+
+for line in f:  line=f.readline(),返回的并不只是一行的内容，而且加上了换行符\n，所以读到空行时返回的是'\n'，读到文件结尾时返回空字符串''。所以使用readline()函数判断是否读到文件尾时只要 :
+>>> line=f.readline()
+>>> while line:
+...     print line.rstrip()
+...     line=f.readline()
+
+而 for line in f:
+	print line.strip()
+
+20150915
+1 可以使用字符串格式化替代字符串加法
+2 __import__函数
+python动态加载模块，使用__import__函数，该函数返回加载的模块，可以直接使用
+通常使用方式：
+module=__import__('pkg.module', fromlist=[])
+注意事项，
+<1>'pkg.module'可以实现加载包里面的模块，类似from pkg import module,此时注意需要关键字参数fromlist，不能为空，可以随意赋值，比如fromlist=['pkg']
+<2>只能加载到模块级别，无法识别模块内的资源
+
+3 plog 代码组织
+plog包内封装了所有的代码逻辑，只在包的初始化文件__init__.py中有一个入口函数，用于启动plog。
+在plog包外有一个调用plog入口函数的python脚本，在该脚本内实现signal信号的处理，参数的接收检查，并使用接收到的参数调用入口启动函数。
+
+在plog包内，将plog的三个功能部分又分别封装成子包方式，在子包内定义抽象接口以实现用户的自定义扩展，然后在plog包的__init.py__中的入口函数内解析配置，加载子包模块并实例化，连接各个功能模块并启动程序。
+
+source模块：
+source模块用于从数据源读取数据，并且返回一个生成器。每次迭代这个生成器可以返回一行数据。
+在plog的实现中有几个点：
+	1 因为时实时读取数据，所以打开文件后将指针置于文件尾然后循环调用readlines
+	注：实践证明可以在不重复打开文件的情况下，对不断增加的文件内容循环调用realines()可以获取新数据
+	2 readlines返回值为空列表时可能有两种情况，（1）没有新数据，暂停一段时间(2)可能inode节点变化
+注：第二种情况实践中在不重复打开文件时并不能读取到inode节点变化后的新增数据，所以需要重新打开文件，所以这又是一个循环逻辑。为了简化程序实现，可以将打开文件读取数据迭代输出的代码封装到一个函数中，这个函数实际就是一个生成器。然后在主函数中循环调用，以实现inode节点变化时重新打开文件。并且为了检测inode节点变化（不管在封装函数中yield特殊值还是return）,都需要在主函数中对生成器重新生成。
++++
+本人抽象一种编程思想： 当某带有循环逻辑的代码很难实现时，可以考虑是否在外层套一层循环逻辑进行某些情况的处理。
+当一个包装不能搞好时 那我就再包一层。最终目的是分解任务。
++++
+	3 在对lines进行迭代 yield时先判断line是否以'\n'结尾，不是的话需要进行累加，直至遇到'\n'结尾的行。
+
+
+
+
+
+16 类中的访问限制 (与模块的类似，但要区分认识)
+需要注意的是，在Python中，变量名类似__xxx__的，也就是以双下划线开头，并且以双下划线结尾的，是特殊变量，特殊变量是可以直接访问的，不是private变量，所以，不能用__name__、__score__这样的变量名。
+
+有些时候，你会看到以一个下划线开头的实例变量名，比如_name，这样的实例变量外部是可以访问的，但是，按照约定俗成的规定，当你看到这样的变量时，意思就是，“虽然我可以被访问，但是，请把我视为私有变量，不要随意访问”。
+
+双下划线开头的实例变量是不是一定不能从外部访问呢？其实也不是。不能直接访问__name是因为Python解释器对外把__name变量改成了_classname__name，所以，仍然可以通过_classname__name来访问__name变量：
+
+17 获取对象信息
+1 type()  type()函数返回对应的Class类型，可以将两个type()函数的返回值进行比较，看两个对象是否是同一类型。
+判断基本数据类型可以直接写int，str等，但如果要判断一个对象是否是函数怎么办？可以使用types模块中定义的常量
+>>> import types
+>>> def fn():
+...     pass
+...
+>>> type(fn)==types.FunctionType
+True
+>>> type(abs)==types.BuiltinFunctionType
+True
+>>> type(lambda x: x)==types.LambdaType
+True
+>>> type((x for x in range(10)))==types.GeneratorType
+True
+
+2 type()函数有一个不足之处在于无法识别继承关系。需要isinstance()函数
+
+3 dir() 函数可以返回一个对象的所有属性
+
+4 hasattr()  getattr() setattr()
+
+18 实例属性与类属性
+实例属性在类中使用self.name=value 定义， 类属性 直接 name=value定义，可以使用 类名.name访问类属性。
+在使用obj.name时首先查看实例自己的属性,再检查类属性
+
+19 python的动态语言特性 
+在python中，可以对实例任意添加属性，即使并没有在类中声明。当然也可以使用类中的特殊变量__slots__来确定在实例中可以扩展的属性列表
+
+20 如果封装类属性(包含实例属性)以实现在外部操作时进行必要的检查，同时又想使用未封装时的方法进行操作，此时可以利用@property装饰器。
+
+21 关于__getattr__() 的高级作用()一直不明白
+注意，只有在没有找到属性的情况下，才调用__getattr__，已有的属性，不会在__getattr__中查找。
+__call__()特殊方法与callable()函数 用于检查一个对象是否是可以调用的
+
+22 协程
+python中的协程通过生成器实现，生成器(yield)作为消费者，生产者通过send方法给生成器传递信息。需要借助生成器返回的迭代器的send()方法，并且在生成器内部将yield表达式的值赋给一个变量，该变量可以接受send()的参数。
+	调用生成器函数并将其返回对象后，使用None为参数调用send方法可以启动该生成器并返回第一次的yield值，生成器内部暂停在yield处，再次调用send()方法，生成器内部首先通过上一次yeild表达式的返回值接收send()函数的参数，然后从上一次yield停止处继续执行直至再次yield，将yield 的值返回给外部的send()调用着。
+
+所以可以看到通过生成器，生成器内部的yield表达式返回值， 生成器对象的send()方法可以实现在生成器内外部之间传递信息，并不断切换。
+
+后续还要学习throw()  close()
+
+
+20150905
+python多进程：
+注意在多进程中的全局变量相互独立，而多线程则共享全局变量。创建进程的几种方法：
+1 os.fork   os.getpid() 获取当前pid 
+2multiprocessing模块的Process类，Process对象具有start() join()方法
+3subprocess模块，适用于子进程并不是程序内部定义的函数，而是外部的(包括系统命令)进程，此时还需要控制子进程的输入输出（不能像Process对象似的通过参数就可以将信息给子进程，而是）对子进程的输入输出进行读写
+3.1 
+r = subprocess.call(['nslookup', 'www.python.org'])
+print('Exit code:', r)
+3.2 
+p = subprocess.Popen(['nslookup'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+output, err = p.communicate(b'set q=mx\npython.org\nexit\n')
+print(output.decode('utf-8'))
+print('Exit code:', p.returncode)
+4 pool 进程池 思想就是新建一个进程池，向进程池里添加进程。 注意进程池添加进程函数的返回值是不是进程对象？
+
+
+
+进程间通信
+Python的multiprocessing模块包装了底层的机制，提供了Queue、Pipes等多种方式来交换数据。
+教程中的queue方法的思想就是创建一个Queue对象，并将其作为参数传递给相应的子进程，在各个子进程中对该对象进行读写。
+
+
+python多线程
+多线程之间共享全局变量
+创建线程：threading.Thread(target=func, args=(xx,xx), name=xxx)
+线程内部获得线程对象：threading.current_thread()
+方法 start() join()
+t = threading.Thread(target=loop, name='LoopThread')
+t.start()
+t.join()
+
+初始化：local_school = threading.local()，在主线程中只需要调用一次即可，每个thread都可以使用，且对象属性互不影响
+ThreadLocal对象可以理解为线程内部的全局变量，但使各个线程之间互不影响。在各个线程中将线程的全局变量作为ThreadLocal对象的属性，可以像使用全局变量似的，在线程内部使用ThreadLocal对象的属性，避免了在线程内部的函数间传递参数，又没有进程全局变量在线程间的锁问题。
+
+"全局变量local_school就是一个ThreadLocal对象，每个Thread对它都可以读写student属性，但互不影响。你可以把local_school看成全局变量，但每个属性如local_school.student都是线程的局部变量，可以任意读写而互不干扰，也不用管理锁的问题，ThreadLocal内部会处理。"
+
+23 sinawatch的报警脚本使用python，学习分析总结
+ 作为一个命令行工具，使用了getopt模块，定义了一个clent类封装了get 与 post方法，具有上传文件的功能，同时还对URL、加密、解析返回json，封装post参数做了优化，具有很好的复用性！
+ 
+ 主程序思路：
+1 编写一个usage()函数，用于打印帮助字符串，由于帮助字符串通常含有多个换行符，所以都会使用'''xxx'''形式
+2 利用getopt模块加载命令行参数，捕捉过程中的异常，打印异常信息与help
+3 定义默认参数信息，根据接收到的参数修改默认配置
+4 对更改后的配置进行必要的检查
+5 初始化clent对象，发送post,接收返回信息。
+ 
+ 
+ 
+ 24 python库学习
+1 python3中统一了urllib与urllib2库，在学习中发现python自带的urllib库虽然很强大，但是太繁琐复杂，不够简洁明了，在阅读官方文档时发现在文档开始处推荐使用第三方http请求库requests，对urllib库进行了封装，增强了易用性，也更加python
+
+在测试过程中发现requests模块有一个可能造成困扰的地方：requests是靠response header中的content-type来决定返回reponse body的解码方式，如果没有则会使用默认的r.encoding(ISO-8859-1)，但这通常不正确，所以在使用r.text之前要设置以下r.encoding='UTF-8',但是有些网页的charset	是设置在html代码中且不是utf-8，此时r.text中就会有乱码，需要通过分析r.text得到正确的encoding然后设置r.encoding
+
+不用那么麻烦，发现r.apparent_encoding即可解决问题！ r.encoding=r.apparent_encoding
+
+
+2 logging模块
+logging提供了纪录日志的借口，可以实现一下功能：
+1 纪录日志到文件 logging.basicConfig(filename, level='logging.INFO')
+默认日志级别是warning， CRITICAL(50)>ERROR(40)>WARNING(30)>INFO(20)>DEBUG(10),设定好level后，低于该level的信息不会被纪录
+2 在不同的模块中调用logging模块，但所有日志都记录到一个文件中
+ex>
+# myapp.py
+import logging
+import mylib
+
+def main():
+    logging.basicConfig(filename='myapp.log', level=logging.INFO)
+    logging.info('Started')
+    mylib.do_something()
+    logging.info('Finished')
+
+if __name__ == '__main__':
+    main()
+    
+# mylib.py
+import logging
+
+def do_something():
+    logging.info('Doing something')
+    
+    
+output:
+INFO:root:Started
+INFO:root:Doing something
+INFO:root:Finished
+    
+3 自定义信息格式
+通常情况下日志中会记录以下元素： 时间，信息，信息级别：
+import logging
+logging.basicConfig(filename='log' format='%(levelname)s %(asctime)s %(message)s', datefmt='%m/%d/%Y %H:%M:%S', level=logging.DEBUG)
+
+The format of the datefmt argument is the same as supported by time.strftime()
+ 
+4 现在我又这样一个需求，希望使用logging向不同的文件里写日志，每个文件使用不同的日志信息格式
+需要使用logging的三个类对象 logger handler formatter
+import logging
+log1=logging.getLogger('log1')
+log2=logging.getLogger('log2')
+handle1=logging.FileHandler('log1')
+handle2=logging.FileHandler('log2')
+log1.addHandler(handle1)
+log2.addHandler(handle2)
+format2=logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(message)s')
+handle2.setFormatter(format2)
+log1.warning('log1_1')
+log2.warning('log2_1')
+
+
+3 re， re模块的方法 一般第一个参数是正则表达式
+re.match()方法判断是否匹配，如果匹配成功，返回一个Match对象，否则返回None。常见的判断方法就是：
+re.split()方法用于切分字符串
+re.compile()方法用于编译正则表达式，如果一个正则表达式要重复使用几千次，出于效率的考虑，我们可以预编译该正则表达式
+
+test = '用户输入的字符串'
+if re.match(r'正则表达式', test):
+    print('ok')
+else:
+    print('failed')
+    
+4 ConfigParser， ConfigParser模块可用于解析配置文件信息
+
+5 signal
+SIGTERM 15
+SIGINT 2 ctrl+c
+SIGKILL 9
+SIGQUIT
+
+def signal_handler(sig, frame):
+    pid=os.getpid()
+    os.kill(pid, signal.SIGQUIT)
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+
+signal_handler称为信号处理函数，是一个回调函数，它会在相应信号出现时调用。该函数参数包括信号编号以及程序被信号重中断时的栈帧。
+os.kill() 用于发送信号。
+
+7 abc
+abc类可以用于在python中实现抽象基类的功能。
